@@ -20,6 +20,7 @@ from hashlib import md5
 from eventlet import Timeout
 import time
 
+from swift.common.utils import Timestamp
 from swift.common.utils import normalize_timestamp
 from swift.common.exceptions import DiskFileQuarantined, DiskFileNotExist, \
     DiskFileCollision, DiskFileNotOpen, DiskFileNoSpace, DiskFileError
@@ -458,3 +459,21 @@ class DiskFile(object):
         md = fs_inst.get_metadata(self._name)
         if md and md['X-Timestamp'] < timestamp:
             fs_inst.del_object(self._name)
+
+    @property
+    def timestamp(self):
+        if self._metadata is None:
+            raise DiskFileNotOpen()
+        return Timestamp(self._metadata.get('X-Timestamp'))
+
+    data_timestamp = timestamp
+
+    durable_timestamp = timestamp
+
+    content_type_timestamp = timestamp
+
+    @property
+    def content_type(self):
+        if self._metadata is None:
+            raise DiskFileNotOpen()
+        return self._metadata.get('Content-Type')
